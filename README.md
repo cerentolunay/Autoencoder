@@ -330,7 +330,6 @@ data/raw/
 ```
 Ham veri setinin tutulacağı klasördür.
 ```
-
 data/processed/
 ```
 Ön işleme yapılmış veri dosyalarının tutulacağı klasördür.
@@ -675,7 +674,7 @@ Web arayüzü veya basit dashboard eklenmesi
 
 ---
 
-##📌 Sonuç
+## 📌 Sonuç
 
 Bu proje, Autoencoder mimarisinin anomali tespiti için nasıl kullanılabileceğini göstermeyi amaçlamaktadır.
 
