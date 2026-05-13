@@ -5,4 +5,5 @@ matplotlib
 seaborn
 torch
 torchvision
-torchaudio 
+torchaudio
+joblib
