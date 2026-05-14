@@ -1,45 +1,30 @@
-# Python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
 
-# Virtual environments
 .venv/
 venv/
 env/
-
-# Environment files
 .env
 
-# Jupyter
 .ipynb_checkpoints/
 
-# Dataset files
 data/raw/*
 data/processed/*
 
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
-# Results
 results/figures/*
 results/metrics/*
 
 !results/figures/.gitkeep
 !results/metrics/.gitkeep
 
-# Trained models
 models/*
 !models/.gitkeep
 
-# PyTorch model files
 *.pt
 *.pth
 
-# OS files
 .DS_Store
 Thumbs.db
-
-# VS Code
-.vscode/ 
