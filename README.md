@@ -1,27 +1,34 @@
 # Autoencoder
 # 🕵️‍♂️ Deep Anomaly Detection Using Autoencoders
 
-Bu proje, **PyTorch** kullanılarak geliştirilecek bir **Autoencoder tabanlı anomali tespiti** uygulamasıdır. Projenin temel amacı, yapay sinir ağlarının yalnızca **normal verilerden öğrenerek** normal dışı davranışları, hataları veya saldırı benzeri durumları nasıl tespit edebileceğini göstermektir.
+Bu proje, **PyTorch** kullanılarak geliştirilmiş bir **Autoencoder tabanlı anomali tespiti** uygulamasıdır. Projenin amacı, yapay sinir ağlarının yalnızca **normal verilerden öğrenerek** normal dışı davranışları veya dolandırıcılık işlemlerini nasıl tespit edebileceğini göstermektir.
 
-Autoencoder modeli, klasik sınıflandırma modellerinden farklı olarak girdiyi doğrudan `normal` veya `anomali` olarak sınıflandırmaz. Bunun yerine, verilen girdiyi yeniden oluşturmaya çalışır. Model sadece normal verilerle eğitildiği için normal verileri düşük hata ile yeniden oluşturabilir. Ancak anormal veriler modele verildiğinde model bu verileri başarılı şekilde yeniden oluşturamaz ve **reconstruction error**, yani yeniden inşa hatası yükselir.
+Bu çalışmada **Credit Card Fraud Detection** veri seti kullanılmıştır. Model yalnızca normal kredi kartı işlemleriyle eğitilmiş, test aşamasında ise hem normal hem de fraud işlemler üzerinde değerlendirilmiştir.
 
-Bu hata belirlenen eşik değerinin üzerine çıkarsa ilgili veri **anomali** olarak kabul edilir.
+Autoencoder modeli, klasik sınıflandırma modellerinden farklı olarak girdiyi doğrudan `normal` veya `anomali` olarak sınıflandırmaz. Bunun yerine, verilen girdiyi yeniden oluşturmaya çalışır. Model sadece normal verilerle eğitildiği için normal verileri düşük hata ile yeniden oluşturabilir. Ancak fraud/anomali verileri modele verildiğinde reconstruction error yükselir.
+
+Bu hata belirlenen threshold değerinin üzerine çıkarsa ilgili işlem **anomali** olarak kabul edilir.
 
 ---
 
 ## 📌 Proje Durumu
 
-Bu proje henüz geliştirme aşamasındadır. README dosyası, proje geliştirilmeden önce sistemin amacını, kullanılacak mimariyi, uygulanacak yöntemi ve planlanan dosya yapısını açıklamak için hazırlanmıştır.
+Proje başarıyla tamamlanmış ve uçtan uca çalıştırılmıştır.
 
-Proje tamamlandığında aşağıdaki çıktılar hedeflenmektedir:
+Tamamlanan aşamalar:
 
-- PyTorch ile Autoencoder modeli geliştirme
-- Normal veri ile model eğitimi
-- Reconstruction error hesaplama
-- Threshold belirleme
-- Test verisi üzerinde anomali tespiti
-- Grafiklerle hata dağılımı analizi
-- Model sonuçlarının değerlendirilmesi
+- Credit Card Fraud Detection veri setinin hazırlanması
+- Normal ve fraud işlemlerin ayrılması
+- `Time` ve `Class` sütunlarının uygun şekilde çıkarılması
+- `Amount` ve diğer sayısal feature değerlerinin ölçeklendirilmesi
+- Modelin sadece normal işlemlerle eğitilmesi
+- PyTorch ile Autoencoder modelinin oluşturulması
+- Reconstruction error hesaplanması
+- Farklı threshold değerlerinin denenmesi
+- Final threshold değerinin seçilmesi
+- Test verisi üzerinde anomali tespiti yapılması
+- Confusion matrix, Precision, Recall ve F1-score değerlerinin hesaplanması
+- Sonuçların grafik ve metrik dosyaları olarak kaydedilmesi
 
 ---
 
@@ -105,11 +112,10 @@ Anomali
 
 ---
 
-## 🏗️ Planlanan Model Mimarisi
+## 🏗️ Model Mimarisi
 
-Bu projede PyTorch ile simetrik bir Autoencoder mimarisi kullanılacaktır.
+Bu projede PyTorch ile simetrik bir Autoencoder mimarisi kullanılmıştır.
 
-Örnek mimari:
 
 Input Layer
     ↓
@@ -151,18 +157,16 @@ Output Layer
 
 Burada input_dim, veri setindeki özellik sayısını ifade eder.
 
-Örneğin veri setinde 30 sütun varsa:
-
-input_dim = 30
+Bu projede `Time` ve `Class` sütunları çıkarıldıktan sonra geriye `V1-V28` ve `Amount` sütunları kalmıştır. Bu nedenle modelin giriş boyutu `29` olmuştur.
 
 Modelin çıkış boyutu da giriş boyutuyla aynı olacaktır. Çünkü Autoencoder modelinin amacı girdiyi yeniden üretmektir.
 
 
 ---
 
-## 📐 Kullanılacak Kayıp Fonksiyonu
+## 📐 Kayıp Fonksiyonu
 
-Modelin eğitiminde Mean Squared Error, yani MSE kullanılacaktır.
+Modelin eğitiminde Mean Squared Error, yani MSE kullanılmıştır.
 
 MSE, orijinal veri ile modelin yeniden oluşturduğu veri arasındaki farkı ölçer.
 
@@ -180,143 +184,129 @@ MSE değeri yüksekse veri normal davranıştan farklı olabilir.
 
 ---
 
+
 ## 🚨 Threshold Mantığı
 
-Model eğitildikten sonra normal verilerin reconstruction error değerleri hesaplanacaktır.
+Model eğitildikten sonra normal eğitim verileri üzerinde reconstruction error değerleri hesaplanmıştır.
 
-Daha sonra bir eşik değeri belirlenecektir.
+Bu projede farklı percentile değerleri denenerek threshold seçiminin model performansına etkisi incelenmiştir.
 
-Planlanan threshold yöntemi:
+Denemelerde şu percentile değerleri karşılaştırılmıştır:
 
-Threshold = Ortalama Reconstruction Error + 3 * Standart Sapma
+- 90
+- 95
+- 97
+- 98
+- 99
+- 99.5
 
-Anomali kararı şu şekilde verilecektir:
+Daha düşük threshold değerleri daha fazla fraud işlemi yakalasa da çok fazla false positive üretmiştir. Daha yüksek threshold değerleri ise false positive sayısını azaltmış, ancak bazı fraud işlemlerinin kaçırılmasına neden olmuştur.
 
+Final modelde en dengeli sonuç verdiği için **99.5 percentile** threshold değeri seçilmiştir.
+
+Anomali kararı şu şekilde verilmiştir:
+
+```txt
 Reconstruction Error > Threshold  → Anomali
 Reconstruction Error <= Threshold → Normal
-
-Bu yöntem sayesinde model, normal verilerden öğrendiği hata aralığının dışına çıkan örnekleri anomali olarak işaretleyebilir.
+```
 
 ---
 
 ## 🚀 Proje Geliştirme Adımları
 
-Proje aşağıdaki adımlar takip edilerek geliştirilecektir.
+Proje aşağıdaki adımlar takip edilerek geliştirilmiştir.
 
-### 1. Veri Setinin Belirlenmesi
+### 1. Veri Setinin Hazırlanması
 
-Öncelikle kullanılacak veri seti seçilecektir.
-
-Bu proje için kullanılabilecek veri seti türleri:
-
-Ağ trafiği verisi
-Kredi kartı işlem verisi
-Sensör verisi
-Sistem log verisi
-Normal/anormal etiketli örnek veri setleri
-
-Proje başlangıcında örnek olması açısından küçük ve anlaşılır bir veri seti tercih edilebilir.
+Credit Card Fraud Detection veri seti `data/raw/creditcard.csv` konumuna yerleştirilmiştir.
 
 ### 2. Veri Ön İşleme
 
-Model eğitilmeden önce veri seti ön işleme adımlarından geçirilecektir.
+`src/data_preprocessing.py` dosyası ile aşağıdaki işlemler yapılmıştır:
 
-Planlanan işlemler:
+- `creditcard.csv` dosyası okunmuştur.
+- `Class` sütununa göre normal ve fraud işlemler ayrılmıştır.
+- `Class = 0` olan veriler normal işlem olarak alınmıştır.
+- `Class = 1` olan veriler fraud/anomali işlem olarak alınmıştır.
+- `Time` sütunu çıkarılmıştır.
+- `Class` sütunu model girişinden çıkarılmıştır.
+- Feature değerleri `StandardScaler` ile ölçeklendirilmiştir.
+- Eğitim verisi sadece normal işlemlerden oluşturulmuştur.
+- Test verisi normal + fraud işlemlerden oluşturulmuştur.
 
-Eksik değer kontrolü
-Sayısal olmayan değerlerin dönüştürülmesi
-Normal ve anomali verilerinin ayrılması
-Verilerin normalize edilmesi
-Eğitim ve test verisinin ayrılması
+### 3. Model Eğitimi
 
-Özellikle Autoencoder modellerinde veri ölçeklendirme önemlidir. Bu nedenle StandardScaler veya MinMaxScaler kullanılacaktır.
+`src/train.py` dosyası ile Autoencoder modeli eğitilmiştir.
 
-### 3. Sadece Normal Veri ile Eğitim
+Eğitimde:
 
-Autoencoder modeli sadece normal verilerle eğitilecektir.
+- Loss fonksiyonu olarak `MSELoss`
+- Optimizer olarak `Adam`
+- Epoch sayısı olarak `50`
+- Batch size olarak `256`
 
-Bu sayede model, yalnızca normal davranış örüntülerini öğrenmiş olacaktır.
+kullanılmıştır.
 
-Anomali verileri eğitim sırasında kullanılmayacaktır.
+Model sadece normal işlem verileriyle eğitilmiştir.
 
-### 4. Reconstruction Error Hesaplama
+### 4. Threshold Belirleme
 
-Model eğitildikten sonra giriş verileri tekrar modele verilecektir.
+Eğitim verisi üzerinde reconstruction error değerleri hesaplanmıştır. Daha sonra farklı percentile değerleri denenmiş ve final threshold olarak `99.5 percentile` seçilmiştir.
 
-Modelin ürettiği çıktı ile orijinal giriş arasındaki fark hesaplanacaktır.
+### 5. Anomali Tespiti
 
-Bu fark, her örnek için reconstruction error değerini verecektir.
+`src/detect_anomaly.py` dosyası ile test verileri üzerinde reconstruction error hesaplanmıştır. Threshold değerini geçen örnekler anomali olarak işaretlenmiştir.
 
-### 5. Threshold Belirleme
+### 6. Sonuçların Değerlendirilmesi
 
-Normal verilerin reconstruction error dağılımı incelenecektir.
+Model başarısı aşağıdaki metriklerle değerlendirilmiştir:
 
-Ortalama ve standart sapmaya göre bir threshold değeri belirlenecektir.
-
-### 6. Test Aşaması
-
-Test verileri modele verilecektir.
-
-Her örnek için reconstruction error hesaplanacaktır.
-
-Threshold değerini geçen örnekler anomali olarak işaretlenecektir.
-
-### 7. Sonuçların Değerlendirilmesi
-
-Modelin başarısı aşağıdaki metriklerle değerlendirilecektir:
-
-Accuracy
-Precision
-Recall
-F1-score
-Confusion Matrix
-Reconstruction Error Distribution
-🛠️ Kullanılacak Teknolojiler
-
-Bu projede aşağıdaki teknolojiler kullanılacaktır:
-
-Python
-PyTorch
-NumPy
-Pandas
-Scikit-learn
-Matplotlib
-Seaborn
+- Accuracy
+- Precision
+- Recall
+- F1-score
+- Confusion Matrix
+- Reconstruction Error Distribution
 
 ---
 
-## 📁 Planlanan Proje Dosya Yapısı
+## 📁 Proje Dosya Yapısı
 
-Proje için önerilen klasör yapısı aşağıdaki gibidir:
 ```bash
-deep-anomaly-detection-autoencoder/
+Autoencoder/
 │
 ├── data/
 │   ├── raw/
-│   │   └── dataset.csv
+│   │   └── creditcard.csv
 │   │
 │   └── processed/
-│       ├── train_data.csv
-│       └── test_data.csv
+│       ├── X_train.csv
+│       ├── X_test.csv
+│       └── y_test.csv
 │
-├── notebooks/
-│   └── autoencoder_experiment.ipynb
+├── models/
+│   ├── autoencoder_model.pth
+│   ├── threshold.txt
+│   └── scaler.pkl
+│
+├── results/
+│   ├── figures/
+│   │   ├── training_loss.png
+│   │   ├── reconstruction_error_distribution.png
+│   │   └── confusion_matrix.png
+│   │
+│   └── metrics/
+│       ├── evaluation_results.txt
+│       └── threshold_experiment_results.txt
 │
 ├── src/
 │   ├── data_preprocessing.py
 │   ├── model.py
 │   ├── train.py
 │   ├── detect_anomaly.py
+│   ├── threshold_experiment.py
 │   └── utils.py
-│
-├── results/
-│   ├── figures/
-│   │   ├── training_loss.png
-│   │   ├── reconstruction_error.png
-│   │   └── confusion_matrix.png
-│   │
-│   └── metrics/
-│       └── evaluation_results.txt
 │
 ├── main.py
 ├── requirements.txt
@@ -368,103 +358,7 @@ main.py
 
 Tüm süreci tek bir dosyadan çalıştırmak için kullanılacaktır.
 
----
 
-## 💻 Planlanan PyTorch Modeli
-
-Aşağıdaki yapı projede kullanılacak Autoencoder modelinin temel halidir.
-```bash
-
-import torch
-import torch.nn as nn
-
-
-class Autoencoder(nn.Module):
-    def __init__(self, input_dim):
-        super(Autoencoder, self).__init__()
-
-        self.encoder = nn.Sequential(
-            nn.Linear(input_dim, 64),
-            nn.ReLU(),
-
-            nn.Linear(64, 32),
-            nn.ReLU(),
-
-            nn.Linear(32, 16),
-            nn.ReLU(),
-
-            nn.Linear(16, 8),
-            nn.ReLU(),
-
-            nn.Linear(8, 4),
-            nn.ReLU()
-        )
-
-        self.decoder = nn.Sequential(
-            nn.Linear(4, 8),
-            nn.ReLU(),
-
-            nn.Linear(8, 16),
-            nn.ReLU(),
-
-            nn.Linear(16, 32),
-            nn.ReLU(),
-
-            nn.Linear(32, 64),
-            nn.ReLU(),
-
-            nn.Linear(64, input_dim)
-        )
-
-    def forward(self, x):
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-
-        return decoded
-``` 
-Modelin son katmanında aktivasyon fonksiyonu kullanılmamıştır. Bunun nedeni, proje kapsamında verilerin büyük ihtimalle StandardScaler ile ölçeklendirilecek olmasıdır.
-
-Eğer veri MinMaxScaler ile 0-1 aralığına çekilirse, son katmanda Sigmoid aktivasyonu da tercih edilebilir.
-
----
-
-## 🏋️ Planlanan Eğitim Süreci
-
-Modelin eğitiminde şu yapı kullanılacaktır:
-```bash
-import torch
-import torch.nn as nn
-import torch.optim as optim
-
-from src.model import Autoencoder
-
-
-input_dim = X_train.shape[1]
-
-model = Autoencoder(input_dim)
-
-criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-X_train_tensor = torch.tensor(X_train.values, dtype=torch.float32)
-
-epochs = 50
-
-for epoch in range(epochs):
-    model.train()
-
-    outputs = model(X_train_tensor)
-    loss = criterion(outputs, X_train_tensor)
-
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-
-    print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.6f}")
-```
-Bu eğitim sürecinde model, giriş verisini tekrar üretmeye çalışacaktır.
-
-Loss değeri azaldıkça model normal veriyi daha iyi öğrenmiş olacaktır.
 
 ---
 
@@ -513,7 +407,7 @@ for i, error in enumerate(test_errors):
 
 ---
 
-## 📊 Beklenen Çıktılar
+## 📊 Çıktılar
 
 Proje tamamlandığında aşağıdaki çıktılar alınması hedeflenmektedir:
 
@@ -535,7 +429,7 @@ Sample 3: Normal. Error: 0.014528
 
 ---
 
-## 📈 Görselleştirme Planı
+## 📈 Görselleştirme
 
 Reconstruction error dağılımı grafikle gösterilecektir.
 
@@ -569,6 +463,8 @@ seaborn
 scikit-learn
 torch
 torchvision
+torchaudio
+joblib
 
 ---
 
@@ -661,23 +557,77 @@ Modelin normal ve anomali sınıflarındaki doğru ve yanlış tahminlerini tabl
 
 ---
 
-## 🔮 Geliştirme Planı
+## 📊 Deneysel Sonuçlar
 
-Proje ilerleyen aşamalarda şu özelliklerle geliştirilebilir:
+Model yalnızca normal kredi kartı işlemleriyle eğitilmiştir. Test aşamasında normal ve fraud işlemler birlikte kullanılmıştır.
 
-Farklı Autoencoder mimarilerinin denenmesi
-Denoising Autoencoder kullanılması
-LSTM Autoencoder ile zaman serisi anomalisi tespiti
-Farklı threshold belirleme yöntemlerinin karşılaştırılması
-Gerçek siber güvenlik veri setleriyle test yapılması
-Web arayüzü veya basit dashboard eklenmesi
+Final threshold değeri, eğitim verisinin reconstruction error dağılımındaki `99.5 percentile` değeri olarak seçilmiştir.
+
+| Metrik | Değer |
+|---|---:|
+| Threshold | 2.96167900 |
+| Accuracy | 0.993287 |
+| Precision | 0.577649 |
+| Recall | 0.808943 |
+| F1-score | 0.674005 |
+
+Confusion Matrix:
+
+```txt
+[[56572   291]
+ [   94   398]]
+```
+
+Bu sonuçlara göre model, toplam 492 fraud işlemin 398 tanesini doğru şekilde yakalamıştır. 94 fraud işlemi kaçırılmıştır. Ayrıca 291 normal işlem yanlışlıkla anomali olarak sınıflandırılmıştır.
+
+Bu sonuç, Autoencoder modelinin normal işlem desenlerini öğrenerek fraud işlemleri belirli bir başarıyla ayırt edebildiğini göstermektedir.
+
+---
+
+## 🧪 Threshold Deneyi
+
+Threshold seçiminin model performansı üzerindeki etkisini görmek için farklı percentile değerleri denenmiştir.
+
+| Percentile | Threshold | Accuracy | Precision | Recall | F1-score |
+|---:|---:|---:|---:|---:|---:|
+| 90 | 0.82548052 | 0.900671 | 0.071181 | 0.878049 | 0.131687 |
+| 95 | 1.11640763 | 0.948531 | 0.127724 | 0.857724 | 0.222339 |
+| 97 | 1.38761914 | 0.968686 | 0.194757 | 0.845528 | 0.316591 |
+| 98 | 1.66717970 | 0.978659 | 0.265385 | 0.841463 | 0.403509 |
+| 99 | 2.33922410 | 0.988179 | 0.406439 | 0.821138 | 0.543742 |
+| 99.5 | 3.52127695 | 0.993305 | 0.581325 | 0.784553 | 0.667820 |
+
+Threshold yükseldikçe model daha seçici davranmıştır. Bunun sonucunda false positive sayısı azalmış ve precision artmıştır. Ancak threshold yükseldikçe bazı fraud işlemleri kaçırıldığı için recall değeri düşmüştür.
+
+Final eğitim çalıştırmasında `99.5 percentile` kullanılmış ve aşağıdaki sonuç elde edilmiştir:
+
+```txt
+Threshold: 2.96167900
+Accuracy:  0.993287
+Precision: 0.577649
+Recall:    0.808943
+F1-score:  0.674005 
+``` 
 
 ---
 
 ## 📌 Sonuç
 
-Bu proje, Autoencoder mimarisinin anomali tespiti için nasıl kullanılabileceğini göstermeyi amaçlamaktadır.
+Bu proje, Autoencoder mimarisinin anomali tespiti için nasıl kullanılabileceğini göstermektedir.
 
-Model, yalnızca normal verilerle eğitilecek ve normal veri yapısını öğrenmeye çalışacaktır. Daha sonra test verileri üzerinde reconstruction error hesaplanarak normal dışı örnekler tespit edilecektir.
+Model yalnızca normal kredi kartı işlemleriyle eğitilmiş ve normal işlem desenlerini öğrenmiştir. Daha sonra test verileri üzerinde reconstruction error hesaplanarak fraud/anomali işlemler tespit edilmiştir.
 
-PyTorch kullanılarak geliştirilecek bu proje, derin öğrenme tabanlı anomali tespiti mantığını anlamak ve uygulamak için temel bir örnek olacaktır.
+Deneysel sonuçlara göre final model:
+
+- `0.993287` accuracy
+- `0.577649` precision
+- `0.808943` recall
+- `0.674005` F1-score
+
+değerlerine ulaşmıştır.
+
+Threshold denemeleri, anomali tespitinde eşik değerinin model performansı üzerinde önemli etkisi olduğunu göstermiştir. Daha düşük threshold değerleri daha fazla fraud yakalarken çok fazla false positive üretmiştir. Daha yüksek threshold değerleri ise false positive sayısını azaltmış ancak bazı fraud işlemlerinin kaçırılmasına neden olmuştur.
+
+Bu nedenle final modelde precision-recall dengesini daha iyi sağladığı için `99.5 percentile` threshold değeri kullanılmıştır.
+
+Sonuç olarak bu proje, PyTorch ile geliştirilen Autoencoder mimarisinin finansal dolandırıcılık tespiti gibi dengesiz veri problemlerinde kullanılabileceğini göstermektedir.
