@@ -234,7 +234,7 @@ def main():
         model=model,
         X_train=X_train,
         device=device,
-        percentile=95
+        percentile=99.5
     )
 
     # Modeli ve threshold değerini kaydet
